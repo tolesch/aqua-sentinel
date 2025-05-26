@@ -10,6 +10,15 @@
 
 Aqua-Sentinel is an automated sentry turret system designed to monitor and protect various spaces — such as cars, gardens, or backyards, from unwanted visitors like martens. It integrates a Raspberry Pi Zero 2 W for video streaming, an ESP32 microcontroller for precise hardware control (servos, pump), and a central computer for computer vision processing and system orchestration. Equipped with a night vision camera, it monitors areas in real-time. When the computer vision software identifies trespassers, it commands the ESP32 (via ROS 2 and Micro-ROS) to aim a servo-controlled water nozzle and deliver a gentle splash as a deterrent. Whether you’re safeguarding your vehicle from pesky martens or your flower beds from curious raccoons, Aqua-Sentinel combines technology and a non-invasive deterrent into one effective, tech-savvy package.
 
+<table>
+  <tr>
+    <td><img src="assets/event_1.png" alt="Event 1" width="200"/></td>
+    <td><img src="assets/event_2.png" alt="Event 2" width="200"/></td>
+    <td><img src="assets/event_3.png" alt="Event 3" width="200"/></td>
+    <td><img src="assets/event_4.png" alt="Event 4" width="200"/></td>
+  </tr>
+</table>
+
 ---
 
 ## Table of Contents
