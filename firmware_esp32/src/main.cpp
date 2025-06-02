@@ -34,6 +34,18 @@ void subscription_callback(const void *msgin) {
   float pos2 = constrain(msg->y, 0, 180);
   servo1.write(pos1);
   servo2.write(pos2);
+  
+  // // Control pump speed based on z (0.0 to 1.0)
+  // int pump_pwm = (int)(msg->z * 255);
+  // analogWrite(pump_pin, pump_pwm);
+  // Control pump - digital on/off based on z value
+  if (msg->z > 0.5) {
+    digitalWrite(pump_pin, HIGH); // Full power ON
+    Serial.println("Pump ON");
+  } else {
+    digitalWrite(pump_pin, LOW); // OFF
+    Serial.println("Pump OFF");
+  }
 }
 
 // Function to discover Micro-ROS agent IP
@@ -69,7 +81,6 @@ IPAddress discover_agent_ip() {
 
 void setup() {
   Serial.begin(115200);
-
   servo1.attach(servo_pin1);
   servo2.attach(servo_pin2);
   
