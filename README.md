@@ -8,7 +8,7 @@
 
 ## Introduction
 
-Aqua-Sentinel is an automated sentry turret system designed to monitor and protect various spaces — such as cars, gardens, or backyards, from unwanted visitors like martens. It integrates a Raspberry Pi Zero 2 W for video streaming, an ESP32 microcontroller for precise hardware control (servos, pump), and a central computer for computer vision processing and system orchestration. Equipped with a night vision camera, it monitors areas in real-time. When the computer vision software identifies trespassers, it commands the ESP32 (via ROS 2 and Micro-ROS) to aim a servo-controlled water nozzle and deliver a gentle splash as a deterrent. Whether you’re safeguarding your vehicle from pesky martens or your flower beds from curious raccoons, Aqua-Sentinel combines technology and a non-invasive deterrent into one effective, tech-savvy package.
+Aqua-Sentinel is an automated sentry turret system designed to monitor and protect various spaces — such as cars, gardens, or backyards, from unwanted visitors like martens. It integrates a Raspberry Pi Zero 2 W for video streaming, an ESP32 microcontroller for precise hardware control (servos, pump), and a central computer for computer vision processing and system orchestration. Equipped with a night vision camera, it monitors areas in real-time. When the computer vision software identifies trespassers, it commands the ESP32 (via ROS 2 and Micro-ROS) to aim a servo-controlled water nozzle and deliver a gentle splash as a deterrent. Whether you’re safeguarding your vehicle from pesky martens or your flower beds from curious raccoons, Aqua-Sentinel combines technology and a non-invasive deterrent into one effective package.
 
 <table>
   <tr>
@@ -39,7 +39,6 @@ Aqua-Sentinel is an automated sentry turret system designed to monitor and prote
     * [Starting the Camera Stream](#starting-the-camera-stream)
     * [Running the Detection Software](#running-the-detection-software)
     * [Manual Servo Control (for testing/calibration)](#manual-servo-control-for-testingcalibration)
-    * [Adjusting Detection and Water Splash](#adjusting-detection-and-water-splash)
 
 ---
 
@@ -194,15 +193,11 @@ With everything set up, here’s how to operate Aqua-Sentinel. Ensure all device
 On the **central computer**, open a new terminal and start the Micro-ROS agent. The ESP32 will connect to this agent.
 
 ```bash
-# Source ROS 2 Jazzy if not already in .bashrc
-source /opt/ros/jazzy/setup.bash
-
-# Source your Micro-ROS agent workspace setup (if not in .bashrc)
-# cd ~/microros_ws # (This is the workspace where you built the agent, adjust if different)
-# source install/local_setup.bash
+# Setup the environment and ros
+source activate_env.sh
 
 # Run the agent
-ros2 run micro_ros_agent micro_ros_agent udp4 --port 8888
+source start_microros_agent.sh
 ```
 
 Keep this terminal running. You should see messages when the ESP32 connects.
@@ -230,16 +225,36 @@ libcamera-vid -t 0 --width 640 --height 480 --framerate 15 --bitrate 1000000 --i
 ### 3\. Running the Detection Software
 [WIP]
 
-### 4\. Manual Servo Control (for testing/calibration)
+### 4. Manual Servo Control (for testing/calibration)
 
-You can test the servo and pump control by manually publishing messages to the ROS 2 topic the ESP32 subscribes to. For example, if the ESP32 subscribes to `/servo_positions` of type `geometry_msgs/msg/Vector3` where `x` is pan angle, `y` is tilt angle, and `z` is pump activation (e.g., 1 for on, 0 for off, or a duration):
+**a) Using ROS 2 Topic Publishing:**
 
-On the **central computer**, in a new terminal (after sourcing ROS 2):
+You can directly publish messages to the ROS 2 topic the ESP32 subscribes to. The ESP32 subscribes to `/servo_positions` of type `geometry_msgs/msg/Vector3` where `x` is pan angle, `y` is tilt angle, and `z` is pump activation (1 for on, 0 for off):
+
+On the **central computer**, in a new terminal:
 
 ```bash
+# Activate venv and ros
+source activate_env.sh
+
 # Example: Set pan to 90 degrees, tilt to 45 degrees, and activate pump (z=1)
 ros2 topic pub --once /servo_positions geometry_msgs/msg/Vector3 "{x: 90.0, y: 45.0, z: 1.0}"
 
 # Example: Turn pump off (z=0)
 ros2 topic pub --once /servo_positions geometry_msgs/msg/Vector3 "{x: 90.0, y: 45.0, z: 0.0}"
+
+```
+
+**b) Teleoperation using an Xbox Controller (via Python Script):**
+
+The servo turret can be controlled using a connected USB Xbox controller.
+
+On the **central computer**, in a new terminal:
+
+```bash
+# First activate venv and ros
+source activate_env.sh
+
+# Then, run the teleoperation script
+python scripts/teleop_controller.py
 ```
