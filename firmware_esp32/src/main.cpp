@@ -12,7 +12,7 @@
 Servo servo1, servo2;
 const int servo_pin1 = 18;
 const int servo_pin2 = 26;
-const int pump_pin = 25;  // Define pump control pin
+const int pump_pin = 25;
 
 // Micro-ROS variables
 rclc_support_t support;
@@ -27,11 +27,20 @@ const int DISCOVERY_PORT = 9999;
 const char* DISCOVERY_MSG = "WHERE_IS_MY_ROBOT_OVERLORD";
 const uint16_t agent_port = 8888;
 
+// ROS connection monitoring
+unsigned long last_message_time = 0;
+const unsigned long MESSAGE_TIMEOUT = 5000; // 5 seconds timeout
+bool is_connected = false;
+
 // Callback for subscription
 void subscription_callback(const void *msgin) {
   const geometry_msgs__msg__Vector3 *msg = (const geometry_msgs__msg__Vector3 *)msgin;
   Serial.printf("Received: x=%.2f, y=%.2f, z=%.2f\n", msg->x, msg->y, msg->z);
   
+  // Update last message time for connection monitoring
+  last_message_time = millis();
+  is_connected = true;
+
   // Control servos
   float pos1 = constrain(msg->x, 0, 180);
   float pos2 = constrain(msg->y, 0, 180);
@@ -53,6 +62,7 @@ void subscription_callback(const void *msgin) {
 
 // Function to discover Micro-ROS agent IP
 IPAddress discover_agent_ip() {
+  Serial.println("Starting agent discovery...");
   udp.begin(DISCOVERY_PORT);
   udp.beginPacket("255.255.255.255", DISCOVERY_PORT);
   udp.write((uint8_t*)DISCOVERY_MSG, strlen(DISCOVERY_MSG));
@@ -79,16 +89,15 @@ IPAddress discover_agent_ip() {
     delay(100);
   }
   Serial.println("No response received within timeout");
+  udp.stop();
   return IPAddress(0, 0, 0, 0);
 }
 
 void setup() {
   Serial.begin(115200);
-
+  // Set up pins
   servo1.attach(servo_pin1);
   servo2.attach(servo_pin2);
-  
-  // Set up pump pin
   pinMode(pump_pin, OUTPUT);
   
   // Connect to WiFi using WiFiManager
@@ -117,8 +126,16 @@ void setup() {
     }
     Serial.print("Received answer from agent at: ");
     Serial.println(agent_ip);
+
     // Set up Micro-ROS with discovered agent IP
-    set_microros_wifi_transports(NULL, NULL, agent_ip, agent_port);
+    String ssid = WiFi.SSID();
+    String password = WiFi.psk();
+    char ssid_buffer[64];
+    char password_buffer[64];
+    ssid.toCharArray(ssid_buffer, sizeof(ssid_buffer));
+    password.toCharArray(password_buffer, sizeof(password_buffer));
+    // Set up Micro-ROS with discovered agent IP and current WiFi credentials
+    set_microros_wifi_transports(ssid_buffer, password_buffer, agent_ip, agent_port);
     if (rclc_support_init(&support, 0, NULL, &allocator) == RCL_RET_OK) {
         Serial.println("Micro-ROS support initialized");
         break; // Exit loop on successful initialization
@@ -158,6 +175,14 @@ void loop() {
     return;
   }
 
+  // If connected, check message timeout
+  if (is_connected && (millis() - last_message_time > MESSAGE_TIMEOUT)) {
+    Serial.println("Message timeout. Connection to agent lost. Rebooting...");
+    delay(1000);
+    ESP.restart();
+  }
+
+  // Normal operation - spin executor
   rclc_executor_spin_some(&executor, RCL_MS_TO_NS(10));  // Spin with 10 ms timeout
   delay(1);  // Small delay to yield CPU
 }
