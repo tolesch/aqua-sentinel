@@ -12,6 +12,7 @@
 Servo servo1, servo2;
 const int servo_pin1 = 18;
 const int servo_pin2 = 26;
+const int pump_pin = 25;  // Define pump control pin
 
 // Micro-ROS variables
 rclc_support_t support;
@@ -30,6 +31,8 @@ const uint16_t agent_port = 8888;
 void subscription_callback(const void *msgin) {
   const geometry_msgs__msg__Vector3 *msg = (const geometry_msgs__msg__Vector3 *)msgin;
   Serial.printf("Received: x=%.2f, y=%.2f, z=%.2f\n", msg->x, msg->y, msg->z);
+  
+  // Control servos
   float pos1 = constrain(msg->x, 0, 180);
   float pos2 = constrain(msg->y, 0, 180);
   servo1.write(pos1);
@@ -81,8 +84,12 @@ IPAddress discover_agent_ip() {
 
 void setup() {
   Serial.begin(115200);
+
   servo1.attach(servo_pin1);
   servo2.attach(servo_pin2);
+  
+  // Set up pump pin
+  pinMode(pump_pin, OUTPUT);
   
   // Connect to WiFi using WiFiManager
   delay(1000);
