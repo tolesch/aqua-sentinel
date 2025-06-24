@@ -150,7 +150,7 @@ graph TD
   * **Micro-ROS**: Extends ROS 2 capabilities to the ESP32 microcontroller.
       * **Micro-ROS Agent**: Runs on the central computer to communicate with the ESP32.
       * **Micro-ROS Client Library**: Used in the ESP32 firmware.
-  * **Computer Vision Libraries**: Tools like OpenCV on the central computer for detecting objects in the video feed. (Specific detection scripts like `detection_code.py` to be developed by the user).
+  * **Computer Vision Libraries**: [WIP] Finetuned object detection model running on the central computer for detecting objects in the video feed.
   * **PlatformIO (or Arduino IDE with ESP32 Core)**: For developing and flashing firmware to the ESP32. The project includes `firmware_esp32/platformio.ini` and `firmware_esp32/src/main.cpp`.
   * **Python**: For helper scripts (e.g., `stream_receiver.py`, detection scripts).
 
