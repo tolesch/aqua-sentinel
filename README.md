@@ -1,4 +1,4 @@
-# [WIP] Aqua-Sentinel: A Smart Sentry Turret System 🛡️
+# Aqua-Sentinel: A Smart Sentry Turret System 🛡️
 
 [![ROS Jazzy](https://img.shields.io/badge/ROS-Jazzy-blueviolet)](https://docs.ros.org/en/jazzy/)
 [![Micro-ROS](https://img.shields.io/badge/Micro--ROS-ESP32-green)](https://micro.ros.org/)
@@ -10,12 +10,29 @@
 
 Aqua-Sentinel is an automated sentry turret system designed to monitor and protect various spaces — such as cars, gardens, or backyards, from unwanted visitors like martens. It integrates a Raspberry Pi Zero 2 W for video streaming, an ESP32 microcontroller for precise hardware control (servos, pump), and a central computer for computer vision processing and system orchestration. Equipped with a night vision camera, it monitors areas in real-time. When the computer vision software identifies trespassers, it commands the ESP32 (via ROS 2 and Micro-ROS) to aim a servo-controlled water nozzle and deliver a gentle splash as a deterrent. Whether you’re safeguarding your vehicle from pesky martens or your flower beds from curious raccoons, Aqua-Sentinel combines technology and a non-invasive deterrent into one effective package.
 
-<table>
+<h3 align="center">Live Demonstration</h3>
+<p align="center">
+  <em>Demonstration of the working Aqua-Sentinel hardware.</em>
+  <br>
+  <img src="assets/demo.gif" alt="Live Demo" width="500"/>
+  <br>
+  <a href="assets/demo_video.mp4">Click here to view another Demo Video</a>
+</p>
+
+<br>
+
+<h3 align="center">Event Sequence Walkthrough</h3>
+<p align="center">
+  <em>Illustration of the step-by-step process: (1) Monitoring, (2) Detection, (3) Aiming, and (4) Deterring.</em>
+</p>
+<table align="center">
   <tr>
-    <td><img src="assets/event_1.png" alt="Event 1" width="200"/></td>
-    <td><img src="assets/event_2.png" alt="Event 2" width="200"/></td>
-    <td><img src="assets/event_3.png" alt="Event 3" width="200"/></td>
-    <td><img src="assets/event_4.png" alt="Event 4" width="200"/></td>
+    <td align="center"><img src="assets/event_1.png" alt="Event 1" width="200"/><br><b>1. Monitoring</b></td>
+    <td align="center"><img src="assets/event_2.png" alt="Event 2" width="200"/><br><b>2. Target Detected</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="assets/event_3.png" alt="Event 3" width="200"/><br><b>3. Aiming</b></td>
+    <td align="center"><img src="assets/event_4.png" alt="Event 4" width="200"/><br><b>4. Deterrent Splash</b></td>
   </tr>
 </table>
 
@@ -39,6 +56,7 @@ Aqua-Sentinel is an automated sentry turret system designed to monitor and prote
     * [Starting the Camera Stream](#starting-the-camera-stream)
     * [Running the Detection Software](#running-the-detection-software)
     * [Manual Servo Control (for testing/calibration)](#manual-servo-control-for-testingcalibration)
+* [Future Work](#future-work)
 
 ---
 
@@ -78,7 +96,7 @@ graph TD
     C -- ROS 2 Messages --> D(Micro-ROS Agent);
     D -- UDP --> E(ESP32 Microcontroller);
     E -- PWM --> F["Servo Motors (Pan/Tilt)"];
-    E -- Control Signal --> G[MOSFET];
+    E -- Control Signal --> G[Relay];
     G -- Power --> H[Water Pump];
 
     subgraph "Central Computer"
@@ -102,15 +120,26 @@ graph TD
 
 ### Hardware
 
-  * **Raspberry Pi Zero 2 W**: The brain for video streaming. Compact yet powerful enough for this task.
+  * **Raspberry Pi Zero 2 W**: The brain for video streaming.
   * **Night Vision Camera**: A camera module compatible with Raspberry Pi, capable of capturing clear footage in low-light conditions.
-  * **ESP32 Microcontroller**: Manages servo motor control and interfaces with the water pump. Chosen for its Wi-Fi capabilities and processing power for Micro-ROS.
-  * **Servo Motors**: Two units—one for camera positioning/pan, one for aiming the water nozzle/tilt.
-  * **Piston Pump**: Extracted from an electric water pump or similar, used to splash water as a deterrent.
-  * **Logic Level MOSFET (e.g., IRL540N)**: Essential for safely controlling the water pump, as the ESP32 cannot directly provide the required current. The ESP32 signals the MOSFET, which then switches the higher current for the pump.
+  * **ESP32 Microcontroller**: Manages servo motor control and interfaces with the water pump.
+  * **Servo Motors**: Two units: one for pan and one for tilt.
+  * **Piston Pump**: Extracted from an electric water pump, used to splash water as a deterrent.
+  * **3V Relay**: For safely controlling the water pump, as the ESP32 cannot directly provide the required current. The ESP32 signals the relay, which then switches on and off the higher voltage for the pump directly from the power supply.
   * **Central Processing Computer**: A more powerful machine (e.g., a laptop or desktop running Ubuntu 24.04) to run the detection software, ROS 2, and the Micro-ROS agent.
-  * **Power Supplies**: Appropriate power supplies for the Raspberry Pi, ESP32, servos, and pump.
-  * **Miscellaneous**: Wires, mounting hardware, tubing for water.
+  * **Power Supplies**: Appropriate power supply (e.g. 5V 10A) for the Raspberry Pi, ESP32, servos, and pump together.
+  * **Miscellaneous**: 3D printer, wires, mounting hardware, tubing for water.
+
+<table align="center">
+  <tr>
+    <td align="center"><b>Raspberry Pi & Camera</b><br><img src="assets/camera.png" alt="Camera on Pi" width="200"/></td>
+    <td align="center"><b>Pan/Tilt Mechanism</b><br><img src="assets/pan_tilt.png" alt="Pan/Tilt Mechanism" width="200"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Water Pump</b><br><img src="assets/water_pump.png" alt="Water Pump" width="200"/></td>
+    <td align="center"><b>Control Electronics</b><br><img src="assets/electronics.png" alt="Electronics" width="200"/></td>
+  </tr>
+</table>
 
 ### Software
 
@@ -258,3 +287,8 @@ source activate_env.sh
 # Then, run the teleoperation script
 python scripts/teleop_controller.py
 ```
+
+## Future Work
+
+* **Custom 3D-Printed Enclosure**: Design and print specialized CAD models for the turret housing and electronic enclosures, providing a more robust and weather-resistant assembly.
+* **Multi-Camera Perspective**: Integrate a second, remote camera to provide an additional viewing angle. This could help improve location estimation accuracy and provide a more comprehensive view of the monitored area.
